@@ -1,0 +1,17 @@
+name: Portal mirror to GitHub
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: |
+          git remote add upstream https://git.sr.ht/~atom4peace/portal
+          git fetch upstream
+          git push --force origin main
