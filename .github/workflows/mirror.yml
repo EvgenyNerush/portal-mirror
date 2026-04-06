@@ -12,6 +12,7 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
+          git remote remove upstream || true
           git remote add upstream https://git.sr.ht/~atom4peace/portal
           git fetch upstream
-          git push --force origin main
+          git push --force origin master
