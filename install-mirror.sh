@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# install-mirror-rocky.sh
-# Configures Nginx stream proxy for XHTTP/REALITY/Trojan on Rocky Linux.
 
 set -euo pipefail
 
@@ -45,6 +43,7 @@ EOF
             pkg_mgr="microdnf"
         else
             echo "Предупреждение: microdnf не найден. Использую dnf (требует больше RAM)."
+            sleep 1
             pkg_mgr="dnf"
         fi
         ngnix_user="nginx"
@@ -100,7 +99,7 @@ stream {
     access_log off;
     
     upstream backend_a {
-        server "${sni}":443;
+        server ${sni}:443;
     }
 
     upstream blackhole_404 {
@@ -110,13 +109,13 @@ stream {
 
     map \$ssl_preread_server_name \$target_backend {
         default blackhole_404;
-        "${sni}" backend_a;
+        ${sni} backend_a;
     }
 
     server {
-        listen "${ip1}":443;
+        listen ${ip1}:443;
         ssl_preread on;
-        proxy_bind "${ip2}";
+        proxy_bind ${ip2};
         proxy_pass \$target_backend;
         proxy_timeout 10s;
         proxy_connect_timeout 5s;
@@ -129,7 +128,8 @@ EOF
         echo "Установка успешно завершена!"
     else
         echo "Ошибка: Nginx не удалось перезапустить."
-        echo "Проверь логи: sudo nginx -t && sudo journalctl -u nginx -e"
+        echo "  Проверь логи: sudo nginx -t && sudo journalctl -u nginx -e"
+        echo "  После исправления /etc/nginx/nginx.conf перезапусти: sudo systemctl restart nginx"
         exit 1
     fi
 
