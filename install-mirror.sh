@@ -5,6 +5,7 @@ set -euo pipefail
 LOG_FILE="install-mirror.log"
 {
     cat <<EOF
+
 ****************************
 Этот скрипт для Rocky/Debian поможет тебе настроить зеркало для XHTTP, REALITY или Trojan.
 Подробности (TODO): https://git.sr.ht/~atom4peace/portal/tree/trunk/item/Readme.md
@@ -13,7 +14,8 @@ LOG_FILE="install-mirror.log"
 
 Схема: сервер имеет два адреса (могут совпадать),
 IP1 для приема данных пользователя, которые затем уходят
-с адреса IP2 на целевой сервер, определяемый через SNI.
+с адреса IP2 на целевой сервер, определяемый адресом или доменом ADDRESS.
+Правило применяется только для TLS трафика с заданным именем сервера - SNI.
 EOF
     
     if [[ "$EUID" -ne 0 ]]; then
@@ -21,23 +23,35 @@ EOF
         exit 1
     fi
 
-    echo "Введите IP1 (входящий адрес):" 
+    echo ""
+    echo "Введите IP1 (входящий адрес);" 
+    echo "  по умолчанию (Enter) Nginx будет слушать все IP4 интерфейсы,"
+    echo "  то есть по умолчанию IP1=0.0.0.0:"
     read -r ip1
-    if [[ -z "${ip1}" ]]; then echo "Ошибка: IP1 не может быть пустым."; exit 1; fi
+    if [[ -z "${ip1}" ]]; then ip1="0.0.0.0"; fi
 
-    echo "Введите IP2 (исходящий адрес, может совпадать с IP1):" 
+    echo "Введите IP2 (исходящий адрес, по умолчанию совпадает с IP1):" 
     read -r ip2
-    if [[ -z "${ip2}" ]]; then echo "Ошибка: IP2 не может быть пустым."; exit 1; fi
+    if [[ -z "${ip2}" ]]; then ip2=${ip1}; fi
 
-    echo "Введите доменное имя (SNI) целевого сервера:" 
+    echo "Введите адрес целевого сервера (ADDRESS):" 
+    read -r address
+    if [[ -z "${address}" ]]; then echo "Ошибка: ADDRESS не может быть пустым."; exit 1; fi
+
+    echo "Введите доменное имя в TLS (SNI)," 
+    echo "  по умолчанию совпадает с ADDRESS:"
     read -r sni
-    if [[ -z "${sni}" ]]; then echo "Ошибка: SNI не может быть пустым."; exit 1; fi
+    if [[ -z "${sni}" ]]; then sni=${address}; fi
 
     # Определение сестемы
     if command -v apt >/dev/null; then
         pkg_mgr="apt"
         ngnix_user="www-data"
         pkgs="nginx-extras libnginx-mod-stream"
+        if command -v ufw >/dev/null; then
+            ufw allow 443/tcp
+            ufw allow 443/udp
+        fi
     elif command -v microdnf >/dev/null || command -v dnf >/dev/null; then
         if command -v microdnf >/dev/null; then
             pkg_mgr="microdnf"
@@ -48,6 +62,11 @@ EOF
         fi
         ngnix_user="nginx"
         pkgs="nginx nginx-mod-stream"
+        if command -v firewall-cmd >/dev/null; then
+            firewall-cmd --permanent --add-port=443/tcp
+            firewall-cmd --permanent --add-port=443/udp
+            firewall-cmd --reload
+        fi
     else
         echo "Ошибка: Не найдено подходящего менеджера пакетов (apt или dnf)."
         exit 1
@@ -99,7 +118,7 @@ stream {
     access_log off;
     
     upstream backend_a {
-        server ${sni}:443;
+        server ${address}:443;
     }
 
     upstream blackhole_404 {
