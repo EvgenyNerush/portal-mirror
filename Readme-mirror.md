@@ -2,7 +2,13 @@
 
 Скрипт для RHEL- и Debian-подобных систем (Rocky, Alma, CentOS, Ubuntu), создающий «зеркало»
 для HTTPS/TLS трафика, а такжа трафика, который маскируется под таковой. Использует Nginx stream, работает с XHTTP-TLS, VLESS-REALITY, Trojan
-и, вероятно, с другими подобними протоколами.
+и, вероятно, с другими подобними протоколами. Запуск:
+
+```bash
+curl -L https://git.sr.ht/~atom4peace/portal/blob/trunk/install-mirror.sh > install-mirror.sh
+chmod +x install-mirror.sh
+sudo ./install-mirror.sh
+```
 
 ### Мотивация
 
