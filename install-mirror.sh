@@ -63,9 +63,7 @@ EOF
         ngnix_user="nginx"
         pkgs="nginx nginx-mod-stream"
         if command -v firewall-cmd >/dev/null; then
-            firewall-cmd --permanent --add-port=443/tcp
-            firewall-cmd --permanent --add-port=443/udp
-            firewall-cmd --reload
+            firewall-cmd --permanent --add-port=443/tcp && firewall-cmd --permanent --add-port=443/udp && firewall-cmd --reload || echo "Правила файрвола не изменены."
         fi
     else
         echo "Ошибка: Не найдено подходящего менеджера пакетов (apt или dnf)."
