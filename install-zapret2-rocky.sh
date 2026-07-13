@@ -86,9 +86,7 @@ cd ..
 if sed -i '/^NFQWS2_OPT=/,/^"/c\
 NFQWS2_OPT="\
 #--debug=@/var/log/nfqws2.log\
---server\
-#--filter-tcp=443 --filter-l7=tls --lua-desync=multisplit:pos=20:seqovl=50:seqovl_pattern=0x00 --new\
---filter-tcp=443 --filter-l7=tls --payload=tls_server_hello --lua-desync=multidisorder:pos=1,midsld\
+--filter-tcp=443 --filter-l7=tls --payload=tls_client_hello --lua-desync=multidisorder:pos=1,midsld\
 "' /opt/zapret2/config; then
   echo "Правила NFQWS2_OPT записаны в /opt/zapret2/config"
 else
