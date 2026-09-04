@@ -233,7 +233,7 @@ ${domainRuleString(rule.clientBlock, "block")}
         serverRules
           .map { rule =>
           s"""
-${domainRuleString(rule.serverDirect, "direct")},
+${domainRuleString(rule.serverDirect, if rproxyUsers.isEmpty then "direct" else "r-outbound")},
 ${domainRuleString(rule.serverBlock, "block")}
           |""".stripMargin
           }
@@ -306,6 +306,16 @@ ${clientRulesString}
 
 
       def toJsonServer(): String =
+        val rproxyClients = rproxyUsers.map { user =>
+            s"""|          {
+              |            "email": "${user.id.take(5)}",
+              |            "id": "${user.id}",
+              |            "flow": "${if (Misc.flow == "xtls-rprx-vision-udp443") then "xtls-rprx-vision" else Misc.flow}",
+              |            "reverse": {
+              |              "tag": "r-outbound"
+              |            }
+              |          }""".stripMargin
+        }.mkString(",\n")
         val clients = users.map { user =>
             s"""|          {
               |            "email": "${user.id.take(5)}",
@@ -324,8 +334,8 @@ ${clientRulesString}
     |  },
     |  "dns": {
     |    "servers": [
-    |      "https+local://cloudflare-dns.com/dns-query",
-    |      "https+local://dns.quad9.net/dns-query",
+    |      "https://cloudflare-dns.com/dns-query",
+    |      "https://dns.quad9.net/dns-query",
     |      "https+local://dns.google/dns-query",
     |      "https+local://doh.opendns.com/dns-query"
     |    ],
@@ -340,7 +350,7 @@ ${clientRulesString}
     |      "protocol": "vless",
     |      "settings": {
     |        "clients": [
-${clients}
+${if rproxyUsers.isEmpty then clients else rproxyClients ++ ",\n" ++ clients}
     |        ],
     |        "decryption": "${vless.decryption}"
     |      },

@@ -76,10 +76,14 @@ def writeFile(filename: String, content: String): Try[Unit] =
         )
       )
 
-      val serverRules: List[(List[String], List[String])] = List((
-        List("dns", "ip:dns"),
-        List("ru", "vk", "max", "ru_blacklist", "what_is_my_ip")
-      ))
+      val serverRules: List[(List[String], List[String])] = List(
+        ( List("dns", "ip:dns"),
+          List("ru", "vk", "max", "ru_blacklist", "what_is_my_ip")
+        ),
+        ( List("all"),
+          List()
+        )
+      )
 
       def vlessenc(): Try[(String, String)] =
         Try {
