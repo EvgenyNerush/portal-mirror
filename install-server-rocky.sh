@@ -229,7 +229,7 @@ elif [[ $variant -eq 5 ]]; then
 </html>
 EOF
 
-    nginx_version=$(nginx -v | cut -d "." -f 2)
+    nginx_version=$(nginx -v 2>&1 | cut -d "." -f 2)
     if [[ $nginx_version -ge 25 ]]; then
         listen_line="listen ${listen}:${port} ssl;"
         http2_line="http2 on;"

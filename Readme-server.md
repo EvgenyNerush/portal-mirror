@@ -9,6 +9,6 @@
 ```bash
 curl -L https://git.sr.ht/~atom4peace/portal/blob/trunk/install-server-rocky.sh > install-server-rocky.sh
 chmod +x install-server-rocky.sh
-sudo ./install-server-rocky.sh
+./install-server-rocky.sh
 ```
 
