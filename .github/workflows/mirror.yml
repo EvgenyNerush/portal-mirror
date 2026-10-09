@@ -1,0 +1,39 @@
+name: Portal mirror to GitHub
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+  push:
+    branches: [overlay]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mirror
+  cancel-in-progress: true
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - run: |
+          set -euo pipefail
+          git remote remove upstream || true
+          git remote add upstream https://git.sr.ht/~atom4peace/portal
+          git fetch upstream --prune '+refs/heads/*:refs/remotes/upstream/*'
+          git push --force origin refs/remotes/upstream/trunk:refs/heads/master
+          git fetch origin overlay
+
+          git switch -C mirror refs/remotes/upstream/trunk
+          git checkout origin/overlay -- .
+
+          if ! git diff --cached --quiet; then
+            git -c user.name="mirror-bot" -c user.email="actions@users.noreply.github.com" \
+              commit -m "chore: apply mirror overlay"
+          fi
+
+          git push --force origin HEAD:master
